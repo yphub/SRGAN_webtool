@@ -17,7 +17,7 @@ class InferenceHandler(RequestHandler):
     @run_on_executor
     def post(self):
         imgBuffer = self.request.files.get('img')[0]
-        res = inference(BytesIO(imgBuffer.body))
+        res = inference(imgBuffer.body)
         self.write(res)
 
 
