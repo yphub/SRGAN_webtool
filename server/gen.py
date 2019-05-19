@@ -1,45 +1,54 @@
-#gen.py
+# gen.py
 import tensorflow as tf
 import numpy as np
 
-# from .owngen import generator
-from owngen import generator
+from .owngen import generator
+# from owngen import generator
 
-inputs_str = tf.placeholder(tf.string, name='inputs_str')
+def makeModel():    
+    with tf.device("/cpu:0"):
+        with tf.Session() as sess:
 
-inputs_intraw = tf.image.decode_image(inputs_str, channels=3)
-inputs_raw = tf.convert_to_tensor(np.array([tf.image.convert_image_dtype(inputs_intraw, dtype=tf.float32, name='inputs_raw')]))
+            inputs_str = tf.placeholder(tf.string, name="inputs_str")
 
-with tf.variable_scope('generator'):
-    gen_output = generator(inputs_raw)
+            # string => int[][]
+            inputs_intarr = tf.image.decode_image(inputs_str, channels=3)
 
-outputs = (gen_output + 1) / 2
-converted_outputs = tf.image.convert_image_dtype(
-    outputs, dtype=tf.uint8, saturate=True)
+            # float[][] => float[][]
+            inputs_arr = tf.image.convert_image_dtype(inputs_intarr, dtype=tf.float32)
 
-outputStr = tf.image.encode_png(converted_outputs[0], name="output_pngs")
+            inputs_shape = tf.shape(inputs_arr)
+            inputs_raw = tf.reshape(inputs_arr, [1,inputs_shape[0], inputs_shape[1], 3], name='inputs_raw')
+
+            with tf.variable_scope('generator'):
+                op = generator(inputs_raw)
+            
+            outputs = (op + 1) / 2
+            converted_outputs = tf.image.convert_image_dtype(
+                outputs, dtype=tf.uint8, saturate=True)
+
+            outputStr = tf.image.encode_png(converted_outputs[0], name="output_pngs")
+
+            saver = tf.train.Saver(tf.get_collection(
+            tf.GraphKeys.GLOBAL_VARIABLES, scope='generator'))
+            saver.restore(sess, "SRGAN_pre-trained/model-200000")
+
+            saver = tf.train.Saver()
+            saver.save(sess, "SRGAN_web/model", global_step=200000)
 
 try:
-    session = tf.Session()
+    sess = tf.Session()
 except Exception as e:
     print(e)
     exit()
 
-saver = tf.train.Saver(tf.get_collection(
-    tf.GraphKeys.GLOBAL_VARIABLES, scope='generator'))
-saver.restore(session, "SRGAN_pre-trained/model-200000")
+saver = tf.train.import_meta_graph('SRGAN_web/model-200000.meta')
+saver.restore(sess, "SRGAN_web/model-200000")
+graph = tf.get_default_graph()
+inputs_str = graph.get_tensor_by_name("inputs_str:0")
+output_str = graph.get_tensor_by_name("output_pngs:0")
 
-
-def inference(st):    
+def inference(st):
     with tf.device("/cpu:0"):
-        res = session.run(outputStr, feed_dict={inputs_str: st})
+        res = sess.run(output_str, feed_dict={inputs_str: st})
     return res
-
-def saver():
-    session.run(tf.global_variables_initializer())
-    saver = tf.train.Saver()
-    saver.save(session, "SRGAN_pre-trained/model", global_step=200000)
-
-if __name__ == "__main__":
-    saver()
-    print(outputStr.name)

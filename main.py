@@ -1,6 +1,7 @@
 # main.py
 import tornado.ioloop
 import tornado.web
+import tensorflow
 from tornado.web import StaticFileHandler
 from io import BytesIO
 
@@ -16,4 +17,8 @@ app = tornado.web.Application(
 app.listen(8081)
 
 print("Starting tornado event loop listening at port 8081")
-tornado.ioloop.IOLoop.instance().start()
+try:
+    tornado.ioloop.IOLoop.instance().start()
+except KeyboardInterrupt as e:
+    print("closing session...")
+    tensorflow.Session().close()
