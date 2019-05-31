@@ -14,7 +14,7 @@ app = tornado.web.Application(
                  {"path": "webfront/dist", "default_filename": "index.html"})],
     debug=True
 )
-app.listen(8081)
+app.listen(8082)
 
 print("Starting tornado event loop listening at port 8081")
 try:

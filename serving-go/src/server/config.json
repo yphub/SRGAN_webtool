@@ -1,0 +1,9 @@
+{
+    "HTTPAddress": ":8082",
+    "TFServing":{
+        "address":"192.168.159.128:8500",
+        "modelName": "SRGAN_grpc",
+        "sigName": "inference"
+    },
+    "StaticFile": "../../../webfront/dist"
+}
