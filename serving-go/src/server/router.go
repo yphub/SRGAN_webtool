@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"io/ioutil"
 	"net/http"
 
 	"tfgrpc"
@@ -37,10 +37,8 @@ func onInference(res http.ResponseWriter, req *http.Request, params httprouter.P
 		imgList := req.MultipartForm.File["img"]
 		if len(imgList) != 0 && imgList[0] != nil {
 			f, _ := imgList[0].Open()
-			var c []byte
-			n, err := f.Read(c)
-			fmt.Println(n)
-			fmt.Println(err)
+			c, _ := ioutil.ReadAll(f)
+
 			res.Write(c)
 			return
 
