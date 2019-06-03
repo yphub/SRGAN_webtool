@@ -4,3 +4,15 @@
 [submodule "serving-go/src/server/vendor/github.com/golang/protobuf"]
 	path = serving-go/src/server/vendor/github.com/golang/protobuf
 	url = https://github.com/golang/protobuf.git
+[submodule "serving-go/src/server/vendor/golang.org/x/net"]
+	path = serving-go/src/server/vendor/golang.org/x/net
+	url = https://github.com/golang/net.git
+[submodule "serving-go/src/server/vendor/golang.org/x/text"]
+	path = serving-go/src/server/vendor/golang.org/x/text
+	url = https://github.com/golang/text.git
+[submodule "serving-go/src/server/vendor/google.golang.org/genproto"]
+	path = serving-go/src/server/vendor/google.golang.org/genproto
+	url = https://github.com/google/go-genproto.git
+[submodule "serving-go/src/server/vendor/google.golang.org/grpc"]
+	path = serving-go/src/server/vendor/google.golang.org/grpc
+	url = https://github.com/grpc/grpc-go.git
