@@ -59,10 +59,11 @@ func NewTfGrpc(address string, modelName string, sigName string) (*TfGrpc, error
 // Predict : 输入排序阵列，输出Score结果
 // 使用PredictRequest输入较为反人类，但性能最高，考虑输入输出人性化可换PredictFromMapSlice
 func (tfgrpc *TfGrpc) Predict(req PredictRequest) (PredictResult, error) {
-	resp, err := tfgrpc.grpcClient.Predict(context.Background(), &serving.PredictRequest{
+	predictRequest := &serving.PredictRequest{
 		ModelSpec: tfgrpc.modelSpec,
 		Inputs:    req.PackInput(),
-	})
+	}
+	resp, err := tfgrpc.grpcClient.Predict(context.Background(), predictRequest)
 	if err != nil {
 		return PredictResult{}, err
 	}
@@ -114,30 +115,46 @@ func (tfgrpc *TfGrpc) PredictFromMapSlice(arr []map[string]interface{}) (Predict
 
 // PredictFromMapOne ： 根据单个输入进行打分
 func (tfgrpc *TfGrpc) PredictFromMapOne(in map[string]interface{}) (PredictResult, error) {
-	req := PredictRequest{}
+	inputs := make(map[string]*framework.TensorProto)
 	for k, v := range in {
 		switch realV := v.(type) {
 		case float32:
-			req.FloatField = append(req.FloatField, k)
-			req.FloatVal = append(req.FloatVal, []float32{realV})
+			inputs[k] = &framework.TensorProto{
+				Dtype:       framework.DataType_DT_FLOAT,
+				FloatVal:    []float32{realV},
+				TensorShape: &framework.TensorShapeProto{},
+			}
 		case string:
-			req.StringField = append(req.StringField, k)
-			req.StringVal = append(req.StringVal, [][]byte{[]byte(realV)})
+			inputs[k] = &framework.TensorProto{
+				Dtype:       framework.DataType_DT_STRING,
+				StringVal:   [][]byte{[]byte(realV)},
+				TensorShape: &framework.TensorShapeProto{},
+			}
 		case []byte:
-			req.StringField = append(req.StringField, k)
-			req.StringVal = append(req.StringVal, [][]byte{realV})
+			inputs[k] = &framework.TensorProto{
+				Dtype:       framework.DataType_DT_STRING,
+				StringVal:   [][]byte{realV},
+				TensorShape: &framework.TensorShapeProto{},
+			}
 		case int32:
-			req.IntField = append(req.IntField, k)
-			req.IntVal = append(req.IntVal, []int32{realV})
+			inputs[k] = &framework.TensorProto{
+				Dtype:       framework.DataType_DT_INT32,
+				IntVal:      []int32{realV},
+				TensorShape: &framework.TensorShapeProto{},
+			}
 		default:
 			return PredictResult{}, fmt.Errorf(`TfGrpc.PredictFromMapOne Error: Unknown Type: key:"%s", value:%v`, k, v)
 		}
 	}
-	response, err := tfgrpc.Predict(req)
+	predictRequest := &serving.PredictRequest{
+		ModelSpec: tfgrpc.modelSpec,
+		Inputs:    inputs,
+	}
+	response, err := tfgrpc.grpcClient.Predict(context.Background(), predictRequest)
 	if err != nil {
 		return PredictResult{}, err
 	}
-	return response, nil
+	return PredictResult{ResponseProto: response}, nil
 }
 
 // PredictRequest : tensorflow-serving请求的进一步封装
