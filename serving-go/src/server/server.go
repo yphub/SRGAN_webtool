@@ -16,9 +16,11 @@ func main() {
 		panic(err)
 	}
 	router := getMainRouter()
-	router.ServeFiles("/*filepath", http.Dir(config.StaticFile))
+	if config.StaticFile != "" {
+		router.ServeFiles("/*filepath", http.Dir(config.StaticFile))
+	}
 
-	err = http.ListenAndServe(config.HTTPAddress, getMainRouter())
+	err = http.ListenAndServe(config.HTTPAddress, router)
 	if err != nil {
 		panic(err)
 	}
