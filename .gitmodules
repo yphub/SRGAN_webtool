@@ -1,0 +1,6 @@
+[submodule "serving-go/src/server/vendor/github.com/julienschmidt/httprouter"]
+	path = serving-go/src/server/vendor/github.com/julienschmidt/httprouter
+	url = https://github.com/julienschmidt/httprouter
+[submodule "serving-go/src/server/vendor/github.com/golang/protobuf"]
+	path = serving-go/src/server/vendor/github.com/golang/protobuf
+	url = https://github.com/golang/protobuf.git
